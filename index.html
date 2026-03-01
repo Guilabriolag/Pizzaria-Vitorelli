@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Pizzaria Vitorelli — Cardápio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#080808">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- FUNDO DECORATIVO -->
+  <div class="bg"></div>
+
+  <!-- ═══════════════════════════════════
+       CABEÇALHO
+  ═══════════════════════════════════ -->
+  <header>
+    <div class="logo-wrap">
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="46" fill="#1a0000" stroke="#ff3c3c" stroke-width="2"/>
+        <circle cx="50" cy="50" r="36" fill="none" stroke="#c5a059" stroke-width="1" stroke-dasharray="4 3"/>
+        <text x="50" y="44" text-anchor="middle" fill="#ff3c3c"
+              font-family="Arial" font-weight="900" font-size="22" letter-spacing="2">VIT</text>
+        <text x="50" y="63" text-anchor="middle" fill="#c5a059"
+              font-family="Arial" font-weight="700" font-size="10" letter-spacing="3">PIZZARIA</text>
+      </svg>
+    </div>
+    <h1 id="headerNome">VITORELLI</h1>
+    <p class="tagline" id="headerSub">Pizzaria Artesanal</p>
+    <div id="statusBadge" class="badge fechado">
+      <span class="dot"></span>
+      <span id="statusTexto">...</span>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════
+       NAVEGAÇÃO PRINCIPAL
+  ═══════════════════════════════════ -->
+  <nav class="main-nav">
+    <button id="nb-pizza"   class="bnav active" onclick="selecionar('pizza')">&#127829; PIZZAS</button>
+    <button id="nb-broto"   class="bnav"        onclick="selecionar('broto')">&#128293; BROTOS</button>
+    <button id="nb-calzone" class="bnav"        onclick="selecionar('calzone')">&#129369; CALZONES</button>
+    <button id="nb-bebidas" class="bnav"        onclick="selecionar('bebidas')">&#129380; BEBIDAS</button>
+    <button id="nb-bairros" class="bnav full"   onclick="selecionar('bairros')">&#128661; BAIRROS &amp; DELIVERY</button>
+  </nav>
+
+  <!-- ═══════════════════════════════════
+       SUBNAV — INTEIRA / MEIA-MEIA
+  ═══════════════════════════════════ -->
+  <div class="subnav" id="subnav">
+    <button id="si" class="active" onclick="alternarModo('inteira')">INTEIRA</button>
+    <button id="sm"               onclick="alternarModo('meia')">&#189; MEIA-MEIA</button>
+  </div>
+
+  <!-- BANNER INSTRUÇÃO MEIA-MEIA -->
+  <div class="banner-meia" id="bannerMeia">
+    <strong>&#127829; Como funciona a Meia-Meia?</strong>
+    Selecione 2 sabores — cobra-se o preço do mais caro.<br>
+    <em>Ex: Mussarela (R$39) + Peperonni 2 (R$55) = você paga R$55</em>
+  </div>
+  <div class="prog-meia" id="progMeia">
+    &#9203; 1º sabor: <strong id="meiaNome1">—</strong> &mdash; Escolha o 2º agora!
+  </div>
+
+  <!-- ═══════════════════════════════════
+       ÁREA DE CONTEÚDO (cards injetados pelo JS)
+  ═══════════════════════════════════ -->
+  <main id="conteudo" class="cards-area"></main>
+
+  <!-- ═══════════════════════════════════
+       BOTÃO FLUTUANTE CARRINHO
+  ═══════════════════════════════════ -->
+  <div id="cartBtn" onclick="toggleCarrinho()">
+    <span class="cart-ico">&#128722;</span>
+    <span id="cartCount">0</span>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       PAINEL DO CARRINHO
+  ═══════════════════════════════════ -->
+  <section id="carrinho">
+
+    <div class="cart-header">
+      <h2>MEU PEDIDO</h2>
+      <button class="btn-fechar" onclick="toggleCarrinho()">FECHAR &#10005;</button>
+    </div>
+
+    <div class="cart-sub">
+      <small>Revise seus itens:</small>
+      <button class="btn-limpar" onclick="limparPedido()">LIMPAR TUDO</button>
+    </div>
+
+    <textarea id="pedido" placeholder="Carrinho vazio..."></textarea>
+
+    <div class="total-row">
+      <span class="total-label">TOTAL ESTIMADO</span>
+      <span class="total-valor" id="totalValor">R$ 0,00</span>
+    </div>
+
+    <!-- BOTÕES RETIRADA / DELIVERY -->
+    <div class="entrega-grid">
+      <button id="btn-ret" class="btn-entrega" onclick="mostrarEntrega('ret')">&#128205; RETIRADA</button>
+      <button id="btn-del" class="btn-entrega" onclick="mostrarEntrega('del')">&#128661; DELIVERY</button>
+    </div>
+
+    <!-- FORMULÁRIO DE ENTREGA -->
+    <div id="formEntrega" style="display:none">
+
+      <!-- Campos só para delivery -->
+      <div id="camposDelivery" style="display:none">
+        <input type="text"   id="endereco" class="campo" placeholder="Endereço e Número">
+        <select id="bairroSelect" class="campo" onchange="atualizarTaxa()">
+          <option value="">Selecione o Bairro (taxa de entrega)</option>
+          <!-- Opções geradas pelo JS a partir de CONFIG.bairros -->
+        </select>
+        <div id="taxaInfo" class="taxa-info" style="display:none">
+          &#128661; Taxa de entrega: <strong id="taxaValor">—</strong>
+        </div>
+      </div>
+
+      <!-- Pagamento (sempre visível após escolher tipo) -->
+      <select id="pagamento" class="campo" onchange="toggleTroco()">
+        <option value="">&#128179; Forma de Pagamento</option>
+        <option value="Cartão">Cartão (Maquininha)</option>
+        <option value="Pix">Pix</option>
+        <option value="Dinheiro">Dinheiro</option>
+      </select>
+
+      <div id="trocoArea" style="display:none">
+        <input type="number" id="troco" class="campo" placeholder="Troco para quanto? (R$)">
+      </div>
+
+      <button id="btnEnviar" onclick="enviarPedido()">
+        &#9989; FINALIZAR NO WHATSAPP
+      </button>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════
+       ALERTA CUSTOMIZADO
+  ═══════════════════════════════════ -->
+  <div id="alertOverlay" class="alert-overlay">
+    <div class="alert-box">
+      <h3 id="alertTitulo">AVISO</h3>
+      <p  id="alertMensagem"></p>
+      <button class="btn-ok" onclick="fecharAlerta()">OK!</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       SCRIPTS — ordem importa!
+       config.js primeiro, depois app.js
+  ═══════════════════════════════════ -->
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
